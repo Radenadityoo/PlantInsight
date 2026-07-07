@@ -12,13 +12,14 @@ def create_app():
     upload_folder = Path('/tmp/uploads') if is_vercel else base_dir / 'app' / 'static' / 'uploads'
     dataset_folder = base_dir / 'dataset' / 'augmented_balanced_dataset_zipped'
     database_url = os.environ.get('DATABASE_URL')
+    sqlite_fallback = Path('/tmp/plantinsight.db') if is_vercel else base_dir / 'plantinsight.db'
 
     if database_url:
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
 
     app.config['UPLOAD_FOLDER'] = upload_folder.as_posix()
     app.config['DATASET_FOLDER'] = os.environ.get('PLANTINSIGHT_DATASET_FOLDER', dataset_folder.as_posix())
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url or f"sqlite:///{(base_dir / 'plantinsight.db').as_posix()}"
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url or f"sqlite:///{sqlite_fallback.as_posix()}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
