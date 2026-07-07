@@ -6,11 +6,24 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR.parent.parent / 'models'
 
-with open(MODEL_DIR / 'resnet_metrics.json', encoding='utf-8') as f:
-    resnet_metrics = json.load(f)
+DEFAULT_METRICS = {
+    'accuracy': 'N/A',
+    'precision': 'N/A',
+    'recall': 'N/A',
+    'f1_score': 'N/A',
+}
 
-with open(MODEL_DIR / 'mobilenet_metrics.json', encoding='utf-8') as f:
-    mobilenet_metrics = json.load(f)
+def _load_metrics(filename):
+    metrics_path = MODEL_DIR / filename
+    if not metrics_path.exists():
+        return DEFAULT_METRICS.copy()
+
+    with open(metrics_path, encoding='utf-8') as f:
+        return json.load(f)
+
+
+resnet_metrics = _load_metrics('resnet_metrics.json')
+mobilenet_metrics = _load_metrics('mobilenet_metrics.json')
 
 
 @lru_cache(maxsize=1)
