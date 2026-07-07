@@ -1,5 +1,11 @@
 # PlantInsight
 
+[![Python](https://img.shields.io/badge/Python-3.11%2B-blue)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-Web_App-black)](https://flask.palletsprojects.com/)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-Model_Stack-orange)](https://www.tensorflow.org/)
+[![Render](https://img.shields.io/badge/Render-Deployment-46E3B7)](https://render.com/)
+[![Git LFS](https://img.shields.io/badge/Git_LFS-Model_Storage-7D5A50)](https://git-lfs.com/)
+
 PlantInsight is a Flask web app for citrus leaf disease classification. It compares two CNN models, ResNet50 and MobileNetV2, and shows prediction results, history, and a compact dataset summary on the About page.
 
 ## Features
@@ -18,6 +24,27 @@ PlantInsight is a Flask web app for citrus leaf disease classification. It compa
 - Flask-SQLAlchemy
 - PostgreSQL on Render
 - Gunicorn for production
+
+## Architecture
+
+```mermaid
+flowchart LR
+	U[User] --> W[Flask Web App]
+	W --> P[Prediction Pipeline]
+	P --> R[ResNet50]
+	P --> M[MobileNetV2]
+	W --> D[(PostgreSQL History)]
+	W --> S[dataset_summary.json]
+	W --> RND[Render Deployment]
+```
+
+The app flow is simple:
+
+1. The user uploads a citrus leaf image.
+2. Flask saves the file and sends it through both TensorFlow models.
+3. The app compares the confidence scores and renders the result page.
+4. Prediction history is stored in PostgreSQL on Render.
+5. The About page reads a small generated dataset summary instead of scanning the full dataset folder.
 
 ## Local Setup
 
@@ -42,6 +69,14 @@ This repository includes a `render.yaml` blueprint. Render uses:
 
 - `gunicorn run:app --bind 0.0.0.0:$PORT`
 - a PostgreSQL database created from the blueprint
+
+## Project Structure
+
+- `app/` - Flask app, routes, templates, services, and model loading logic
+- `models/` - trained model files and saved metrics
+- `dataset/` - local training dataset used to generate the summary file
+- `render.yaml` - Render blueprint for web service and database
+- `requirements.txt` - Python dependencies
 
 ## Notes
 
