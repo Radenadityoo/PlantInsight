@@ -1,0 +1,11 @@
+{
+  "root": "dataset/augmented_balanced_dataset_zipped",
+  "distribution": {
+    "Black Spot": 1818,
+    "Canker": 2000,
+    "Greening": 1868,
+    "Healthy": 2000,
+    "Other": 2000
+  },
+  "total": 9686
+}

@@ -1,0 +1,178 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+  <div class="col-12 col-lg-8">
+    <div class="hero-banner p-4 p-md-5 h-100">
+      <div class="section-kicker mb-2">AI Prediction Workspace</div>
+      <h2 class="dashboard-title display-6 mb-3">Classify citrus leaf disease with a clean dashboard flow.</h2>
+      <p class="text-muted mb-4">Upload a leaf image, compare ResNet50 and MobileNetV2, and review prediction history in a single agriculture-focused interface.</p>
+      <div class="d-flex flex-wrap gap-2">
+        <span class="soft-chip">TensorFlow inference</span>
+        <span class="soft-chip">Drag & drop upload</span>
+        <span class="soft-chip">Model comparison</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-4">
+    <div class="metric-card p-4 h-100">
+      <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+          <div class="section-kicker mb-1">Dashboard Status</div>
+          <h3 class="h5 mb-1">Prediction pipeline</h3>
+          <p class="text-muted mb-0">Ready for image analysis.</p>
+        </div>
+        <span class="badge text-bg-success rounded-pill px-3 py-2">Live</span>
+      </div>
+      <div class="d-grid gap-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted">Models compared</span>
+          <strong>2</strong>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted">Input size</span>
+          <strong>160 x 160</strong>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted">History tracking</span>
+          <strong>Enabled</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-12 col-xl-7">
+    <div class="upload-panel p-4 p-md-5 h-100">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+        <div>
+          <div class="section-kicker mb-1">Upload Analyzer</div>
+          <h3 class="h4 mb-2">Drop a citrus leaf image</h3>
+          <p class="text-muted mb-0">Choose a JPG or PNG file to start the analysis workflow.</p>
+        </div>
+        <div class="soft-chip">Responsive UI</div>
+      </div>
+
+      <form id="uploadForm" action="/predict" method="POST" enctype="multipart/form-data">
+        <input type="file" name="image" id="fileElem" accept="image/*" hidden />
+        <div class="upload-box" id="drop-area">
+          <div class="text-center" id="upload-text">
+            <div class="display-6 mb-2">🌱</div>
+            <h4 class="h5 mb-2">Drag & drop your image here</h4>
+            <p class="text-muted mb-3">or browse your device to upload a leaf photo.</p>
+            <button type="button" class="btn btn-success btn-lg px-4 rounded-pill">Choose Image</button>
+          </div>
+
+          <img id="preview" class="img-fluid rounded-4 shadow-sm mt-3" alt="Preview" />
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <button class="btn btn-success btn-lg rounded-pill px-4" type="submit">Analyze Image</button>
+          <a class="btn btn-outline-success btn-lg rounded-pill px-4" href="/history">View History</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-5">
+    <div class="feature-card p-4 p-md-5 h-100">
+      <div class="section-kicker mb-2">Workflow</div>
+      <h3 class="h4 mb-4">What happens after upload</h3>
+      <div class="d-grid gap-3">
+        <div class="d-flex gap-3">
+          <div class="soft-chip flex-shrink-0">1</div>
+          <div>
+            <h4 class="h6 mb-1">Preprocessing</h4>
+            <p class="text-muted mb-0">The image is resized and normalized for inference.</p>
+          </div>
+        </div>
+        <div class="d-flex gap-3">
+          <div class="soft-chip flex-shrink-0">2</div>
+          <div>
+            <h4 class="h6 mb-1">Dual prediction</h4>
+            <p class="text-muted mb-0">ResNet50 and MobileNetV2 produce labels and confidence scores.</p>
+          </div>
+        </div>
+        <div class="d-flex gap-3">
+          <div class="soft-chip flex-shrink-0">3</div>
+          <div>
+            <h4 class="h6 mb-1">History saved</h4>
+            <p class="text-muted mb-0">The prediction is stored in SQLite for later review.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .upload-box {
+    border: 1.8px dashed rgba(25, 135, 84, 0.35);
+    border-radius: 24px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    background: linear-gradient(180deg, rgba(231, 246, 236, 0.45), rgba(255, 255, 255, 0.8));
+    transition: all 0.25s ease;
+  }
+
+  .upload-box:hover {
+    border-color: #198754;
+    transform: translateY(-1px);
+    box-shadow: 0 16px 34px rgba(25, 135, 84, 0.08);
+  }
+
+  #preview {
+    max-width: 100%;
+    display: none;
+    margin-inline: auto;
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const dropArea = document.getElementById("drop-area");
+    const fileInput = document.getElementById("fileElem");
+    const preview = document.getElementById("preview");
+    const uploadText = document.getElementById("upload-text");
+
+    if (!dropArea || !fileInput || !preview || !uploadText) return;
+
+    uploadText.querySelector("button").addEventListener("click", () => fileInput.click());
+
+    dropArea.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropArea.style.background = "linear-gradient(180deg, rgba(210, 241, 219, 0.8), rgba(255, 255, 255, 0.92))";
+    });
+
+    dropArea.addEventListener("dragleave", () => {
+      dropArea.style.background = "linear-gradient(180deg, rgba(231, 246, 236, 0.45), rgba(255, 255, 255, 0.8))";
+    });
+
+    dropArea.addEventListener("drop", (e) => {
+      e.preventDefault();
+      fileInput.files = e.dataTransfer.files;
+      showPreview(e.dataTransfer.files[0]);
+    });
+
+    fileInput.addEventListener("change", () => showPreview(fileInput.files[0]));
+
+    function showPreview(file) {
+      if (!file || !file.type.startsWith("image/")) {
+        alert("File harus berupa gambar!");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        preview.src = e.target.result;
+        preview.style.display = "block";
+        uploadText.style.display = "none";
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+</script>
+
+{% endblock %}

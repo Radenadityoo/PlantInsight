@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="hero-banner p-4 p-md-5 mb-4">
+  <div class="row align-items-center g-3">
+    <div class="col-lg-8">
+      <div class="section-kicker mb-2">Prediction Archive</div>
+      <h2 class="dashboard-title h1 mb-2">History of citrus leaf predictions</h2>
+      <p class="text-muted mb-0">Review past ResNet50 and MobileNetV2 results in a responsive dashboard table.</p>
+    </div>
+    <div class="col-lg-4 text-lg-end">
+      <div class="metric-card d-inline-flex align-items-center gap-3 px-4 py-3">
+        <div class="soft-chip">{{ records|length }}</div>
+        <div>
+          <div class="text-muted small">Saved predictions</div>
+          <div class="fw-semibold">Auto logged to SQLite</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="table-panel p-3 p-md-4">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Image</th>
+          <th scope="col">ResNet50</th>
+          <th scope="col">MobileNetV2</th>
+          <th scope="col">Best Model</th>
+          <th scope="col">Timestamp</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if records %}
+          {% for record in records %}
+          <tr>
+            <td class="fw-semibold">{{ loop.index }}</td>
+            <td>{{ record.uploaded_image }}</td>
+            <td>
+              <div class="fw-semibold">{{ record.resnet_label }}</div>
+              <div class="text-muted small">Confidence: {{ (record.resnet_confidence * 100) | round(2) }}%</div>
+            </td>
+            <td>
+              <div class="fw-semibold">{{ record.mobilenet_label }}</div>
+              <div class="text-muted small">Confidence: {{ (record.mobilenet_confidence * 100) | round(2) }}%</div>
+            </td>
+            <td><span class="badge text-bg-success rounded-pill">{{ record.best_model }}</span></td>
+            <td class="text-muted small">{{ record.timestamp.strftime('%d-%m-%Y %H:%M:%S') }}</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="6" class="text-center py-5 text-muted">No prediction history yet. Upload an image first to create a record.</td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

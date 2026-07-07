@@ -1,0 +1,5 @@
+{% macro render_nav_links(link_class='sidebar-link') -%}
+  <a class="nav-link {{ link_class }} {% if request.endpoint == 'main.index' %}active{% endif %}" href="/">Dashboard</a>
+  <a class="nav-link {{ link_class }} {% if request.endpoint == 'main.history' %}active{% endif %}" href="/history">Prediction History</a>
+  <a class="nav-link {{ link_class }} {% if request.endpoint == 'main.about' %}active{% endif %}" href="/about">Dataset Insights</a>
+{%- endmacro %}
