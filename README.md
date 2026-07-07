@@ -70,12 +70,26 @@ This repository includes a `render.yaml` blueprint. Render uses:
 - `gunicorn run:app --bind 0.0.0.0:$PORT`
 - a PostgreSQL database created from the blueprint
 
+## Vercel Deployment
+
+Vercel can run the Flask app through `api/index.py` and `vercel.json`, but this project is not a great fit for production on Vercel because the TensorFlow models are large and the function cold start can be slow.
+
+If you still want to test it on Vercel:
+
+- deploy the repo as a Python project
+- make sure `DATABASE_URL` points to an external PostgreSQL database
+- expect `/tmp/uploads` to be temporary on each deployment
+- keep the model files in Git LFS, but be aware that Vercel may still struggle with their size
+- Vercel defaults to demo mode (`PLANTINSIGHT_DEMO_MODE=1`), so the site can load without importing TensorFlow on startup
+- turn demo mode off only if you explicitly want real model inference and accept the heavier cold start
+
 ## Project Structure
 
 - `app/` - Flask app, routes, templates, services, and model loading logic
 - `models/` - trained model files and saved metrics
 - `dataset/` - local training dataset used to generate the summary file
 - `render.yaml` - Render blueprint for web service and database
+- `vercel.json` - Vercel routing config for the Flask entrypoint
 - `requirements.txt` - Python dependencies
 
 ## Notes

@@ -1,11 +1,13 @@
-import time
+import os
 import random
+import time
+
 import numpy as np
-from app.model.loader import resnet_model, mobilenet_model
-from app.model.loader import resnet_metrics, mobilenet_metrics
+
+from app.model.loader import get_models, mobilenet_metrics, resnet_metrics
 from app.model.preprocess import preprocess_image
 
-USE_DUMMY = False  # ubah ke True kalau model belum siap
+USE_DUMMY = os.environ.get('PLANTINSIGHT_DEMO_MODE', '0') == '1' or os.environ.get('VERCEL') == '1'
 
 CLASS_NAMES = ['black_spot', 'canker', 'greening', 'healthy', 'other']
 
@@ -33,6 +35,7 @@ def dummy_prediction():
 # ================= REAL =================
 def real_prediction(img_path):
     img = preprocess_image(img_path)
+    resnet_model, mobilenet_model = get_models()
     
     # ResNet
     start = time.time()

@@ -8,7 +8,8 @@ from .extensions import db
 def create_app():
     app = Flask(__name__)
     base_dir = Path(app.root_path).parent
-    upload_folder = base_dir / 'app' / 'static' / 'uploads'
+    is_vercel = os.environ.get('VERCEL') == '1'
+    upload_folder = Path('/tmp/uploads') if is_vercel else base_dir / 'app' / 'static' / 'uploads'
     dataset_folder = base_dir / 'dataset' / 'augmented_balanced_dataset_zipped'
     database_url = os.environ.get('DATABASE_URL')
 
@@ -20,6 +21,7 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url or f"sqlite:///{(base_dir / 'plantinsight.db').as_posix()}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
     upload_folder.mkdir(parents=True, exist_ok=True)
 
