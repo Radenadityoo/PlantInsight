@@ -1,4 +1,5 @@
 import os
+import base64
 
 from flask import Blueprint, current_app, render_template, request
 from werkzeug.utils import secure_filename
@@ -34,6 +35,15 @@ def predict():
         filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
 
+        image_data = None
+        try:
+            with open(filepath, 'rb') as image_file:
+                encoded = base64.b64encode(image_file.read()).decode('ascii')
+                mime_type = 'image/png' if filename.lower().endswith('.png') else 'image/jpeg'
+                image_data = f'data:{mime_type};base64,{encoded}'
+        except Exception:
+            current_app.logger.exception('Failed to encode uploaded image for inline preview')
+
         result = predict_image(filepath)
         best_model = 'ResNet50' if result['resnet']['confidence'] >= result['mobilenet']['confidence'] else 'MobileNetV2'
 
@@ -53,7 +63,7 @@ def predict():
             current_app.logger.exception('Failed to save prediction history')
             db.session.rollback()
 
-        return render_template('result.html', result=result, image=filename)
+        return render_template('result.html', result=result, image=filename, image_data=image_data)
 
     return 'File must be an image'
 
