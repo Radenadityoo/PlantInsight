@@ -8,7 +8,6 @@ from app.extensions import db
 from app.models import PredictionHistory
 from app.model.predict import predict_image
 from app.services.dataset import build_dataset_summary
-
 main = Blueprint('main', __name__)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}

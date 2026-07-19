@@ -42,16 +42,16 @@
   </div>
 </div>
 
-<div class="row g-4">
-  <div class="col-12 col-xl-7">
-    <div class="upload-panel p-4 p-md-5 h-100">
+<div class="row g-4 align-items-start">
+  <div class="col-12 col-xl-8">
+    <div class="upload-panel upload-panel--focus p-4 p-md-5 h-100">
       <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
         <div>
-          <div class="section-kicker mb-1">Upload Analyzer</div>
-          <h3 class="h4 mb-2">Drop a citrus leaf image</h3>
-          <p class="text-muted mb-0">Choose a JPG or PNG file to start the analysis workflow.</p>
+          <div class="section-kicker mb-1">Primary Action</div>
+          <h3 class="h3 mb-2">Upload or capture a citrus leaf image</h3>
+          <p class="text-muted mb-0">Use your device gallery or webcam, then send the same image to the existing prediction pipeline.</p>
         </div>
-        <div class="soft-chip">Responsive UI</div>
+        <div class="soft-chip">Upload + Camera</div>
       </div>
 
       <form id="uploadForm" action="/predict" method="POST" enctype="multipart/form-data">
@@ -61,7 +61,19 @@
             <div class="display-6 mb-2">🌱</div>
             <h4 class="h5 mb-2">Drag & drop your image here</h4>
             <p class="text-muted mb-3">or browse your device to upload a leaf photo.</p>
-            <button type="button" class="btn btn-success btn-lg px-4 rounded-pill">Choose Image</button>
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+              <button type="button" id="chooseImageBtn" class="btn btn-success btn-lg px-4 rounded-pill">Choose Image</button>
+              <button type="button" id="cameraBtn" class="btn btn-outline-success btn-lg px-4 rounded-pill">Capture with Camera</button>
+            </div>
+          </div>
+
+          <div id="camera-panel" class="camera-panel mt-4 d-none">
+            <video id="camera-preview" class="img-fluid rounded-4 shadow-sm w-100" autoplay playsinline muted></video>
+            <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+              <button type="button" id="captureBtn" class="btn btn-success btn-lg rounded-pill px-4">Capture</button>
+              <button type="button" id="stopCameraBtn" class="btn btn-outline-secondary btn-lg rounded-pill px-4">Close Camera</button>
+            </div>
+            <p id="camera-message" class="text-muted small mt-3 mb-0"></p>
           </div>
 
           <img id="preview" class="img-fluid rounded-4 shadow-sm mt-3" alt="Preview" />
@@ -75,8 +87,8 @@
     </div>
   </div>
 
-  <div class="col-12 col-xl-5">
-    <div class="feature-card p-4 p-md-5 h-100">
+  <div class="col-12 col-xl-4">
+    <div class="feature-card workflow-panel p-4 p-md-4 h-100">
       <div class="section-kicker mb-2">Workflow</div>
       <h3 class="h4 mb-4">What happens after upload</h3>
       <div class="d-grid gap-3">
@@ -110,11 +122,15 @@
   .upload-box {
     border: 1.8px dashed rgba(25, 135, 84, 0.35);
     border-radius: 24px;
-    padding: 2rem;
+    padding: 2.5rem 2rem;
     text-align: center;
     cursor: pointer;
     background: linear-gradient(180deg, rgba(231, 246, 236, 0.45), rgba(255, 255, 255, 0.8));
     transition: all 0.25s ease;
+    min-height: 460px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
   .upload-box:hover {
@@ -125,8 +141,71 @@
 
   #preview {
     max-width: 100%;
+    max-height: 420px;
     display: none;
     margin-inline: auto;
+    object-fit: contain;
+  }
+
+  .camera-panel {
+    background: rgba(25, 135, 84, 0.04);
+    border: 1px solid rgba(25, 135, 84, 0.12);
+    border-radius: 20px;
+    padding: 1rem;
+    overflow: hidden;
+    max-height: 700px;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.22s ease, transform 0.22s ease, max-height 0.22s ease, padding 0.22s ease, margin 0.22s ease, border-width 0.22s ease;
+  }
+
+  .camera-panel.is-hiding {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-8px);
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0 !important;
+    border-width: 0;
+  }
+
+  #camera-preview {
+    max-height: 360px;
+    object-fit: cover;
+    background: #0f1720;
+  }
+
+  .upload-panel--focus {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 251, 248, 0.98));
+  }
+
+  .workflow-panel {
+    position: sticky;
+    top: 1.5rem;
+  }
+
+  .workflow-panel h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem !important;
+  }
+
+  .workflow-panel p {
+    font-size: 0.94rem;
+  }
+
+  .workflow-panel .soft-chip {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8rem;
+  }
+
+  @media (min-width: 1200px) {
+    .upload-panel--focus {
+      padding: 2.5rem !important;
+    }
+
+    .workflow-panel {
+      padding: 1.5rem !important;
+    }
   }
 </style>
 
@@ -136,10 +215,124 @@
     const fileInput = document.getElementById("fileElem");
     const preview = document.getElementById("preview");
     const uploadText = document.getElementById("upload-text");
+    const chooseImageBtn = document.getElementById("chooseImageBtn");
+    const cameraBtn = document.getElementById("cameraBtn");
+    const cameraPanel = document.getElementById("camera-panel");
+    const cameraPreview = document.getElementById("camera-preview");
+    const captureBtn = document.getElementById("captureBtn");
+    const stopCameraBtn = document.getElementById("stopCameraBtn");
+    const cameraMessage = document.getElementById("camera-message");
+    const uploadForm = document.getElementById("uploadForm");
 
     if (!dropArea || !fileInput || !preview || !uploadText) return;
 
-    uploadText.querySelector("button").addEventListener("click", () => fileInput.click());
+    let cameraStream = null;
+
+    if (chooseImageBtn) {
+      chooseImageBtn.addEventListener("click", () => {
+        stopCamera();
+        hideCameraPanel(true);
+        if (cameraMessage) {
+          cameraMessage.textContent = "";
+        }
+        fileInput.click();
+      });
+    }
+
+    if (cameraBtn) {
+      cameraBtn.addEventListener("click", async () => {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          alert("Browser Anda belum mendukung akses kamera.");
+          return;
+        }
+
+        try {
+          stopCamera();
+          showCameraPanel();
+          if (uploadText) {
+            uploadText.style.display = "none";
+          }
+          if (cameraMessage) {
+            cameraMessage.textContent = "Meminta izin akses kamera...";
+          }
+
+          cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "environment" } },
+            audio: false,
+          });
+
+          cameraPreview.srcObject = cameraStream;
+          if (cameraMessage) {
+            cameraMessage.textContent = "Arahkan kamera ke daun, lalu tekan Capture.";
+          }
+        } catch (error) {
+          console.error(error);
+          if (cameraPanel) {
+            cameraPanel.classList.remove("d-none");
+          }
+          if (cameraMessage) {
+            cameraMessage.textContent = "Akses kamera ditolak atau tidak tersedia.";
+          }
+        }
+      });
+    }
+
+    if (captureBtn) {
+      captureBtn.addEventListener("click", () => {
+        if (!cameraStream || !cameraPreview.videoWidth || !cameraPreview.videoHeight) {
+          alert("Kamera belum siap.");
+          return;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = cameraPreview.videoWidth;
+        canvas.height = cameraPreview.videoHeight;
+
+        const context = canvas.getContext("2d");
+        context.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            alert("Gagal mengambil gambar dari kamera.");
+            return;
+          }
+
+          const capturedFile = new File([blob], `camera-capture-${Date.now()}.png`, { type: "image/png" });
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(capturedFile);
+          fileInput.files = dataTransfer.files;
+
+          showPreviewFromUrl(URL.createObjectURL(blob));
+          stopCamera();
+          if (cameraMessage) {
+            cameraMessage.textContent = "Gambar siap dikirim ke analisis.";
+          }
+          if (captureBtn) captureBtn.disabled = true;
+          if (stopCameraBtn) stopCameraBtn.disabled = true;
+
+          window.setTimeout(() => {
+            if (uploadForm && uploadForm.requestSubmit) {
+              uploadForm.requestSubmit();
+            } else if (uploadForm) {
+              uploadForm.submit();
+            }
+          }, 180);
+        }, "image/png");
+      });
+    }
+
+    if (stopCameraBtn) {
+      stopCameraBtn.addEventListener("click", () => {
+        stopCamera();
+        hideCameraPanel(false);
+        if (cameraMessage) {
+          cameraMessage.textContent = "";
+        }
+        if (!preview.src && uploadText) {
+          uploadText.style.display = "block";
+        }
+      });
+    }
 
     dropArea.addEventListener("dragover", (e) => {
       e.preventDefault();
@@ -164,6 +357,12 @@
         return;
       }
 
+      stopCamera();
+      hideCameraPanel(true);
+      if (cameraMessage) {
+        cameraMessage.textContent = "";
+      }
+
       const reader = new FileReader();
       reader.onload = function (e) {
         preview.src = e.target.result;
@@ -171,6 +370,47 @@
         uploadText.style.display = "none";
       };
       reader.readAsDataURL(file);
+    }
+
+    function showPreviewFromUrl(url) {
+      preview.src = url;
+      preview.style.display = "block";
+      uploadText.style.display = "none";
+    }
+
+    function showCameraPanel() {
+      if (!cameraPanel) return;
+
+      cameraPanel.classList.remove("d-none", "is-hiding");
+      window.requestAnimationFrame(() => {
+        cameraPanel.classList.remove("is-hiding");
+      });
+      if (captureBtn) captureBtn.disabled = false;
+      if (stopCameraBtn) stopCameraBtn.disabled = false;
+    }
+
+    function hideCameraPanel(immediate) {
+      if (!cameraPanel) return;
+
+      cameraPanel.classList.remove("is-hiding");
+      if (immediate) {
+        cameraPanel.classList.add("d-none");
+        return;
+      }
+
+      cameraPanel.classList.add("is-hiding");
+      window.setTimeout(() => {
+        cameraPanel.classList.add("d-none");
+        cameraPanel.classList.remove("is-hiding");
+      }, 220);
+    }
+
+    function stopCamera() {
+      if (!cameraStream) return;
+
+      cameraStream.getTracks().forEach((track) => track.stop());
+      cameraStream = null;
+      cameraPreview.srcObject = null;
     }
   });
 </script>
