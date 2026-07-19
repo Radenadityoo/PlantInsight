@@ -55,6 +55,14 @@
       </div>
 
       <form id="uploadForm" action="/predict" method="POST" enctype="multipart/form-data">
+        {% if upload_error %}
+        <div class="alert alert-warning alert-dismissible fade show inline-upload-alert mb-4" role="alert">
+          <div class="fw-semibold">Upload needed</div>
+          <div>{{ upload_error }}</div>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+
         <input type="file" name="image" id="fileElem" accept="image/*" hidden />
         <div class="upload-box" id="drop-area">
           <div class="text-center" id="upload-text">
@@ -177,6 +185,13 @@
 
   .upload-panel--focus {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 251, 248, 0.98));
+  }
+
+  .inline-upload-alert {
+    border-radius: 18px;
+    border: 1px solid rgba(217, 164, 6, 0.22);
+    background: linear-gradient(180deg, rgba(255, 248, 225, 0.95), rgba(255, 255, 255, 0.98));
+    box-shadow: 0 14px 30px rgba(217, 164, 6, 0.08);
   }
 
   .workflow-panel {

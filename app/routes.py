@@ -22,12 +22,12 @@ def index():
 @main.route('/predict', methods=['POST'])
 def predict():
     if 'image' not in request.files:
-        return 'No file part'
+        return render_template('index.html', upload_error='No selected image. Please choose or capture an image first.')
 
     file = request.files['image']
 
     if file.filename == '':
-        return 'No selected file'
+        return render_template('index.html', upload_error='No selected image. Please choose or capture an image first.')
 
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
@@ -64,7 +64,7 @@ def predict():
 
         return render_template('result.html', result=result, image=filename, image_data=image_data)
 
-    return 'File must be an image'
+    return render_template('index.html', upload_error='Please upload an image file in JPG or PNG format.')
 
 
 @main.route('/history')
